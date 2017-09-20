@@ -160,3 +160,62 @@ PUBLIC void delay(int time)
 		}
 	}
 }
+
+
+/*======================================================================*
+                               str2Int
+ *======================================================================*/
+PUBLIC int str2Int(char str[])
+{
+	int num = 0;
+	int len = getSize(str);
+	for(int i = 0; i < len; i++) 
+	{
+		if(str[i] - '0' >= 0 && str[i] - '9' <= 0)
+		{
+			num += (str[i] - '1' + 1) * getMag(len - 1 - i);
+		}
+		else {
+			num = -1;
+			break;
+		}
+	}	
+	return num;
+}
+/*======================================================================*
+                               getMag
+ *======================================================================*/
+PUBLIC int getMag(int n) 
+{
+	int result = 1;
+	for(int i = 0; i < n; i++) 
+	{
+		result = result * 10;
+	}
+	return result;
+}
+/*======================================================================*
+                               getSize
+ *======================================================================*/
+PUBLIC int getSize(char str[])
+{
+	int size = 0;
+	for(; size < MAX_FILENAME_LEN; size++) {
+		if(str[size] == '\0')
+		{
+			return size;
+		}
+	}
+	return size;
+}
+
+PUBLIC void showFormatString(char str[])
+{
+	int size = getSize(str);
+	char newStr[16];
+	memcpy(newStr, str, 16);
+	memset(newStr + size, ' ', 16 - size);
+	newStr[15] = '\0';     // set last in string to be end
+	printf("%s", newStr);
+	return newStr;
+}

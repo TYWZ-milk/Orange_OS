@@ -2,7 +2,7 @@
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 main.c
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-WX, 2005
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 #include "type.h"
@@ -54,6 +54,8 @@ void initFS();
 void welcome();
 void clear();
 void showProcess();
+void killProcess();
+void makeProcess();
 void help();
 void colorful();
 void createFile(char * filepath, char *filename, char * buf);
@@ -495,7 +497,7 @@ void shabby_shell(const char * tty_name)
 	colorful();
 	clear();
 	welcome();
-	printf("press any key to start:\n");
+
 	initFS();
 
 	while (1) {
@@ -574,6 +576,16 @@ void shabby_shell(const char * tty_name)
 				else if (strcmp(cmd, "proc") == 0)
 				{
 					showProcess();
+				}
+				// kill a process
+				else if (strcmp(cmd, "kill") == 0)
+				{
+					// printf("Process killed successfullly, pid: %s\n", arg1);
+					killProcess(arg1);
+				}
+				else if (strcmp(cmd, "mkpro") == 0)
+				{
+					makeProcess(arg1);
 				}
 				/* show help message */
 				else if (strcmp(cmd, "help") == 0)
@@ -769,6 +781,22 @@ void off()
 {
 	return 0;
 }
+// /*****************************************************************************
+// *							  Show Process
+// *****************************************************************************/
+// void showProcess()
+// {
+// 	int i = 0;
+// 	printf("********************************************************************************\n");
+// 	printf("        name        |        priority        |        f_flags(0 is runable)        \n");
+// 	printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+// 	for (i = 0; i < NR_TASKS + NR_PROCS; i++)
+// 	{
+// 		printf("        %s                   %d                      %d\n", proc_table[i].name, proc_table[i].priority, proc_table[i].p_flags);
+// 	}
+// 	printf("********************************************************************************\n");
+// }
+
 /*****************************************************************************
 *							  Show Process
 *****************************************************************************/
@@ -776,42 +804,115 @@ void showProcess()
 {
 	int i = 0;
 	printf("********************************************************************************\n");
-	printf("        name        |        priority        |        f_flags(0 is runable)        \n");
+	printf("     id      |     name      |      priority     |       flags(0 is runable)    \n");
 	printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 	for (i = 0; i < NR_TASKS + NR_PROCS; i++)
 	{
-		printf("        %s                   %d                      %d\n", proc_table[i].name, proc_table[i].priority, proc_table[i].p_flags);
+		if(proc_table[i].p_flags == FREE_SLOT) {
+			continue;
+		}
+		// char * newString = formatString(proc_table[i].name);
+		// printf("%s\n", newString);
+		printf("%s%d%s", 
+			"      ",
+			i,
+			"     ");
+		if(i < 10) {
+			printf(" ");
+		}
+		showFormatString(proc_table[i].name);
+		printf(" %d%s",
+			proc_table[i].priority, 
+			"                   ");
+		if(proc_table[i].priority < 10) {
+			printf(" ");
+		}
+		printf("%d\n", proc_table[i].p_flags);
 	}
 	printf("********************************************************************************\n");
 }
+
+/*****************************************************************************
+*							  kill Process
+*****************************************************************************/
+void killProcess(char str[])
+{
+	// call a function str2Int() to transfer char[] to int, defined in klib.c
+	int i = str2Int(str);
+	// printf("pid is(in INT form: %d\n", i);
+	if(i >= NR_TASKS + NR_PROCS || i < 0) {
+		printf("Error! Pid %d exceeded the range\n", i);
+	}
+	else if(i < NR_TASKS) {
+		printf("System tasks cannot be killed.\n");
+	}
+	else if(proc_table[i].priority == 0 || proc_table[i].p_flags == FREE_SLOT) 
+	{
+		printf("Process with pid = %d not found.\n", i);
+	}
+	else {
+		proc_table[i].priority = 0;
+		proc_table[i].p_flags = FREE_SLOT;
+		printf("Process with pid = %d is finished.\n", i);	
+	}
+}
+
+/*****************************************************************************
+*							  folk new Process
+*****************************************************************************/
+void makeProcess(char str[])
+{
+	int pid = fork();
+	int childPID;
+	for(int i = 0; i < NR_TASKS + NR_PROCS; i++)
+	{
+		if(proc_table[i].p_flags == FREE_SLOT)
+		{
+			childPID = i;
+			break;
+		}
+	}
+	if(getSize(str) <= 0) {
+		strcpy(str, "Unnamed");
+	}
+	if (pid != 0) { /* parent */
+		childPID = pid;
+		int s;
+		wait(&s);
+	}
+	else {	/* child */
+		// printf("priority: %d, pid: %d, \n", proc_table[childPID].priority, childPID);
+		printf("successfullly make a new process.\n");
+		strcpy(proc_table[childPID].name, str);
+		proc_table[childPID].p_flags = RECEIVING;
+		proc_table[childPID].priority = 5;
+	}
+	showProcess();
+}
+
 
 /*****************************************************************************
 *							Show Help Message
 *****************************************************************************/
 void help()
 {
-	printf("********************************************************************************\n");
+	printf("===============================================================================\n");
 	printf("        name                   |                      function                      \n");
-	printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+	printf("===============================================================================\n");
 	printf("        welcome                |       Welcome the users\n");
 	printf("        clear                  |       Clean the screen\n");
 	printf("        ls                     |       List all files in current file path\n");
 	printf("        help                   |       List all commands\n");
 	printf("        proc                   |       List all process's message\n");
-	printf("        print	  [str]        |       Print a string\n");
-	printf("        mkfile	  [file][str]  |       Create a file\n");
-	printf("        mkdir	  [file]	   |       Create a directory\n");
-	printf("        read	  [file]       |       Read a file\n");
-	printf("        delete	  [file]       |       Delete a file\n");
+	printf("        kill   [id]            |       kill a process with this pid\n");
+	printf("        mkpro  [name]          |       folk and start a new process\n");
+	printf("        mkdir  [name]          |       Create a directory\n");
+	printf("        mkfile [file][str]     |       Create a file\n");
+	printf("        read   [file]          |       Read a file\n");
+	printf("        delete [file]          |       Delete a file\n");
 	printf("        deletedir [file]       |       Delete a directory\n");
-	printf("        edit      [file][str]  |       Edit file, cover the content\n");
-	printf("        edit+     [file][str]  |       Edit file, appand after the content\n");
-	printf("        add       [user][pass] |       Create a new user\n");
-	printf("        move      [user][pass] |       Remove a user and delete his files\n");
-	printf("        login     [user][pass] |       Login \n");
-	printf("        logout                 |       Loginout\n");
-	printf("        cd                     |       Change directory\n");
-	printf("        quit                   |       Power off\n");
+	printf("        edit   [file][str]     |       Edit file, cover the content\n");
+	printf("        edit+  [file][str]     |       Edit file, appand after the content\n");
 	printf("===============================================================================\n");
 
 }

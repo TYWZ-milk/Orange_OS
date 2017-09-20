@@ -11,6 +11,7 @@ int main(int argc, char * argv[]){
 	printf("              *                   2.calculator                  *\n");
 	printf("              *                   3.ic-tac-toe                  *\n");
 	printf("              *                   4.Guess number                *\n");
+	printf("              *                   5.N queen game                *\n");
 	printf("              *                 Enter e to quit                 *\n");
 	printf("              ***************************************************\n\n");
 	
@@ -24,11 +25,101 @@ int main(int argc, char * argv[]){
 		ic();
 	if('4' == bur[0])
 		guess();
+	if('5' == bur[0])
+		queen();
 	if('e' == bur[0])
 		break;
 	printf("\n\n\n\n\n");
 	}
 	return 0;
+}
+/****************************N queen game*******************************/
+
+void huisu(int l);
+
+int jc(int l, int i);
+
+int n, h[100];
+
+int x;
+
+void queen()
+
+{
+
+		printf("              ***************************************************\n");
+		printf("              *               N Queen game                      *\n");
+		printf("              ***************************************************\n");
+		printf("              *                                                 *\n");
+		printf("              *              Enter e to quit                    *\n");
+		printf("              *                                                 *\n");
+		printf("              ***************************************************\n\n");
+
+
+		printf("N=");
+		char bur[128];
+		read(0, bur, 128);
+		n = chartonumber(bur[0]);
+
+		x = 0;
+
+		huisu(1);
+
+		printf("There are %d stacking methods\n", x);
+	
+
+}
+
+void huisu(int l)
+
+{
+
+	int i, j;
+
+	if (l == n + 1)
+
+	{
+
+		x = x + 1;
+
+		printf("stacking methods are:\n", x);
+
+		for (i = 1; i <= n; i++)
+
+			printf("%d", h[i]);
+
+		printf("\n");
+
+	}
+
+	for (i = 1; i <= n; i++)
+
+	{
+
+		h[l] = i;
+
+		if (jc(l, i) != 1)
+
+			huisu(l + 1);
+
+	}
+
+}
+
+int jc(int l, int i)
+
+{
+
+	int k;
+
+	for (k = 1; k<l; k++)
+
+		if ((l - k == h[k] - i) || i == h[k])
+
+			return 1;
+
+	return 0;
+
 }
 /***************************guess number********************************/
 int my_atoi(const char *s)
